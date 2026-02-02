@@ -20,7 +20,28 @@ const __dirname = path.resolve();
 // middleware
 app.use(express.json());
 // credentials:true meaning?? => server allows a browser to include cookies on request
-app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
+// CORS (fixed)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://www.amanmishra.dev",
+  "https://amanmishra.dev",
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, origin);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(clerkMiddleware()); // this adds auth field to request object: req.auth()
 
 app.use("/api/inngest", serve({ client: inngest, functions }));
